@@ -1,0 +1,42 @@
+{
+    "_comment": "Alpha-Beta heuristic weights for FoW Chess — Agent 4: ABHeuristicAgent",
+    "_note": "These weights are loaded by ABHeuristicAgent.java via buildFoWHeuristics(). Edit here and update the Java source to match.",
+    "_tuning_notes": {
+        "centerControlWeight": "Standard chess values; reduce to 0.05 if FoW makes center control less relevant",
+        "fogPenaltyWeight": "Increase to 1.0 if agent plays too passively under fog; decrease to 0.2 if it over-avoids aggressive moves",
+        "kingSafetyWeight": "Decrease to 0.5 for more aggressive king-side play; increase to 3.0 to maximize king hiding behavior"
+    },
+    "heuristics": [
+        {
+            "pieceWeights": {
+                "Bishop1": 3.0,
+                "Bishop2": 3.0,
+                "Knight1": 3.0,
+                "Knight2": 3.0,
+                "Pawn1": 1.0,
+                "Pawn2": 1.0,
+                "Queen1": 9.0,
+                "Queen2": 9.0,
+                "Rook1": 5.0,
+                "Rook2": 5.0
+            },
+            "transformation": "none",
+            "type": "Material",
+            "weight": 1.0
+        },
+        {
+            "type": "MobilityAdvanced",
+            "weight": 0.02
+        },
+        {
+            "_centerControlNote": "Add 0.1 per visible central square (d4/d5/e4/e5)",
+            "_fogPenaltyNote": "Subtract 0.5 per enemy piece alive but not currently visible",
+            "_kingSafetyNote": "Add 1.5 per adjacent square around own king hidden from enemy",
+            "centerControlWeight": 0.1,
+            "class": "agents.FoWHeuristicTerm",
+            "fogPenaltyWeight": 0.5,
+            "kingSafetyWeight": 1.5,
+            "type": "FoWHeuristicTerm"
+        }
+    ]
+}

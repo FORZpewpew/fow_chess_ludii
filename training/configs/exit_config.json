@@ -1,0 +1,46 @@
+{
+    "_comment": "Expert Iteration (ExIt) training configuration for FoW Chess — Agent 5: Trained-UCT",
+    "_hyperparameter_grid": {
+        "_comment": "Run separate configs for hyperparameter search",
+        "expertSearchTime_options": [
+            0.5,
+            1.0,
+            2.0
+        ],
+        "networkType_options": [
+            "LinearFunction"
+        ],
+        "numTrainingGames_options": [
+            10000,
+            50000,
+            200000
+        ]
+    },
+    "_usage": "java -Xmx8g -cp 'ludii/Ludii-1.3.14.jar:ludii/agents/jars/agents.jar' training.expert_iteration.ExpertIteration --config ludii/training/configs/exit_config.json",
+    "addFeatureEveryN": 1000,
+    "checkpointEveryN": 5000,
+    "expertSearchDepth": -1,
+    "expertSearchIterations": -1,
+    "expertSearchTime": 1.0,
+    "expertType": "UCT",
+    "featureSetClasses": [
+        "features.spatial.AbsoluteFeature",
+        "features.spatial.RelativeFeature"
+    ],
+    "gameName": "FoW Chess",
+    "gameOptions": [],
+    "gamePath": "ludii/FoW_Chess.lud",
+    "l2RegWeight": 1e-5,
+    "learningRate": 0.001,
+    "maxNumFeatures": 200,
+    "networkType": "LinearFunction",
+    "numEpochs": 10,
+    "numPlayoutMovesBurnin": 200,
+    "numThreads": 4,
+    "numTrainingGames": 50000,
+    "outputDir": "ludii/training/results/",
+    "prioritizeExploredStates": true,
+    "pruneInitFeatures": true,
+    "trainingBatchSize": 256,
+    "useValueFunction": true
+}
