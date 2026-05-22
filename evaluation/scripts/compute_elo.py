@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bayesian Elo rating computation for FoW Chess agent tournament.
+Maximum-Likelihood Elo rating computation for FoW Chess agent tournament.
 
 Reads games_log.csv and outputs:
   - elo_ratings.csv

@@ -2,7 +2,7 @@
 FoWPolicyLSTM — Recurrent actor-critic for Fog-of-War Chess.
 
 Architecture:
-  obs (128 or legacy 192) → encoder [Linear(obs_dim→512), ReLU, Linear(512→512), ReLU]
+  obs (128) → encoder [Linear(obs_dim→512), ReLU, Linear(512→512), ReLU]
                           → LSTM(512→512, num_layers=1)
                           → actor  Linear(512→4096)
                           → critic Linear(512→1)
@@ -24,7 +24,6 @@ from torch.distributions import Categorical
 VERSION = "v4"
 
 OBS_DIM        = 128
-LEGACY_OBS_DIM = 192
 HIDDEN_DIM     = 512
 ACT_DIM        = 4096
 

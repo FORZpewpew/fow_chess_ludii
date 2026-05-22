@@ -24,14 +24,16 @@ Rewards:
   - 0.0 on draw or move-limit
   - 0.0 for all intermediate steps (sparse reward)
 """
+from pathlib import Path
 import numpy as np
+import os
 import jpype
 import jpype.imports
 
-JAVA_HOME  = "/Users/forzpewpew/.asdf/installs/java/openjdk-26"
-LUDII_JAR  = "/Users/forzpewpew/Downloads/ludii/Ludii-1.3.14.jar"
-AGENTS_JAR = "/Users/forzpewpew/Downloads/ludii/agents/jars/agents.jar"
-GAME_PATH  = "/Users/forzpewpew/Downloads/ludii/FoW_Chess.lud"
+JAVA_HOME  = os.environ.get("JAVA_HOME")
+LUDII_JAR  = str(Path(__file__).parent.parent / "Ludii-1.3.14.jar")
+AGENTS_JAR = str(Path(__file__).parent.parent / "agents" / "jars" / "agents.jar")
+GAME_PATH  = str(Path(__file__).parent.parent / "FoW_Chess.lud")
 MAX_PLIES  = 400
 
 OBS_DIM    = 128   # 64 cells × 2 channels (owner + piece_type)

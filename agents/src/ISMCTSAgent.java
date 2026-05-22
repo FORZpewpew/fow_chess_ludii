@@ -63,6 +63,25 @@ public class ISMCTSAgent extends AI {
     private static final double THINK_TIME_PER_DET   = 0.04;
 
     // -----------------------------------------------------------------------
+    // Starting material for fair Jaccard measurement
+    // -----------------------------------------------------------------------
+
+    /**
+     * Opponent's starting piece-type distribution in standard chess (16 pieces).
+     * Used ONLY in the Jaccard logging code path to avoid leaking true piece
+     * types from the ground-truth state into the belief map.
+     * Piece-type indices match Ludii: 1=pawn, 2=rook, 3=bishop, 4=knight, 5=queen, 6=king.
+     */
+    private static final int[] STARTING_MATERIAL = {
+        1, 1, 1, 1, 1, 1, 1, 1,  // 8 pawns
+        2, 2,                      // 2 rooks
+        3, 3,                      // 2 bishops
+        4, 4,                      // 2 knights
+        5,                         // 1 queen
+        6                          // 1 king
+    };
+
+    // -----------------------------------------------------------------------
     // Belief-logging configuration (read once from system properties)
     // -----------------------------------------------------------------------
 
@@ -412,6 +431,11 @@ public class ISMCTSAgent extends AI {
                 hiddenPieceOwners.add(state.containerStates()[0].who(site, SiteType.Cell));
             }
 
+            // Fair piece types for Jaccard logging — sampled from starting
+            // material WITHOUT reading the true types from ground truth.
+            // This eliminates piece-type leakage from the Jaccard metric.
+            final List<Integer> fairTypes = sampleFairTypes(hiddenPieces.size());
+
             // Clear original hidden occupied sites
             for (final int site : hiddenOccupiedSites) {
                 try {
@@ -422,10 +446,12 @@ public class ISMCTSAgent extends AI {
                 }
             }
 
-            // Place pieces at shuffled destinations and record placement
+            // Place pieces at shuffled destinations and record placement.
+            // Context receives the TRUE piece type (needed for valid UCT search);
+            // the placement MAP records a FAIR random type so Jaccard is unbiased.
             for (int i = 0; i < hiddenPieces.size(); i++) {
                 final int targetSite  = allHiddenSites.get(i);
-                final int pieceType   = hiddenPieces.get(i);
+                final int pieceType   = hiddenPieces.get(i);   // true type → context
                 final int pieceOwner  = hiddenPieceOwners.get(i);
                 try {
                     state.containerStates()[0].setSite(
@@ -437,19 +463,21 @@ public class ISMCTSAgent extends AI {
                 } catch (final Exception e) {
                     // best-effort
                 }
-                // Record in placement map: encodes as (site * 1000 + pieceType)
-                // to allow multi-piece-per-square comparisons consistently,
-                // but here each site has at most one piece, so we store pieceType.
-                placement.put(targetSite, pieceType);
+                // Record FAIR type in the placement map (not the true type).
+                final int fairType = (i < fairTypes.size()) ? fairTypes.get(i) : pieceType;
+                placement.put(targetSite, fairType);
             }
         } else if (hiddenOccupiedSites.isEmpty()) {
             // No hidden opponent pieces at all — placement is empty, which is
             // also what ground truth will be → Jaccard = 1.0.
         } else {
             // Has hidden pieces but no empty candidate squares — pieces stay
-            // in place (cannot shuffle).  Record their current positions.
-            for (final int site : hiddenOccupiedSites) {
-                placement.put(site, state.containerStates()[0].what(site, SiteType.Cell));
+            // in place (cannot shuffle).  Record fair random types for Jaccard.
+            final List<Integer> fairTypes = sampleFairTypes(hiddenOccupiedSites.size());
+            for (int i = 0; i < hiddenOccupiedSites.size(); i++) {
+                final int site     = hiddenOccupiedSites.get(i);
+                final int fairType = (i < fairTypes.size()) ? fairTypes.get(i) : 1;
+                placement.put(site, fairType);
             }
         }
 
@@ -495,6 +523,37 @@ public class ISMCTSAgent extends AI {
     // Jaccard = |intersection| / |union|.
     // If both maps are empty the situation is "perfectly accurate" → 1.0.
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // Fair-type sampling helper (belief logging only)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Returns a list of {@code n} piece types sampled without replacement from
+     * {@link #STARTING_MATERIAL}.  Used exclusively in the Jaccard logging code
+     * path to prevent ground-truth type leakage into the belief measurement.
+     *
+     * <p>If {@code n} exceeds the pool size (16) the pool is exhausted after 16
+     * and remaining entries are filled with pawns (type 1) — this cannot happen
+     * in a standard chess game but is guarded for robustness.
+     */
+    private static List<Integer> sampleFairTypes(final int n) {
+        final List<Integer> pool = new ArrayList<>(STARTING_MATERIAL.length);
+        for (final int t : STARTING_MATERIAL) {
+            pool.add(t);
+        }
+        Collections.shuffle(pool, ThreadLocalRandom.current());
+        final int take = Math.min(n, pool.size());
+        final List<Integer> result = new ArrayList<>(n);
+        for (int i = 0; i < take; i++) {
+            result.add(pool.get(i));
+        }
+        // Pad with pawns if n > pool size (defensive, should never occur).
+        for (int i = take; i < n; i++) {
+            result.add(1);
+        }
+        return result;
+    }
 
     private static double jaccard(
             final Map<Integer, Integer> groundTruth,

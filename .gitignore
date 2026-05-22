@@ -3,9 +3,9 @@ agents/compiled
 agents/jars
 agents/out
 agents/agents.jar
-evaluation/results_grave
-evaluation/results_time_sensitivity
-evaluation/results_v4
+evaluation/*
+!evaluation/scripts
+!evaluation/figures
 ppo/logs/
 ppo/__pycache__
 training/logs

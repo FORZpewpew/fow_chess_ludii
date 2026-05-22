@@ -123,8 +123,8 @@ fow_chess_ludii/
 | 4 | **IS-MCTS v4** | `ismcts_v4` | `ISMCTSAgent.java` | 25 determinizations variant. |
 | 5 | **GRAVE** | `grave` | Ludii built-in | MCTS with GRAVE selection. |
 | 6 | **GRAVE+MAST** | `grave_mast` | Ludii built-in | GRAVE selection + MAST playout policy. |
-| 7 | **PPO-LSTM v4** | `ppo_lstm_v4` | `PPOLSTMAgent.java` + Python | Recurrent actor-critic trained from scratch via PPO. Elo ~1267. |
-| 8 | **PPO-LSTM Pretrained v4** | `ppo_lstm_pretrained_v4` | `PPOLSTMAgent.java` + Python | BC pretraining + PPO fine-tuning. Elo ~1283. |
+| 7 | **PPO-LSTM v4** | `ppo_lstm_v4` | `PPOLSTMAgent.java` + Python | Recurrent actor-critic trained from scratch via PPO. Elo ~1745. |
+| 8 | **PPO-LSTM Pretrained v4** | `ppo_lstm_pretrained_v4` | `PPOLSTMAgent.java` + Python | BC pretraining + PPO fine-tuning. Elo ~1756. |
 
 Additional agents in codebase (not in final 8-agent tournament):
 - **AB-Heuristic** (`ab_heuristic`): Alpha-Beta + FoW-specific heuristic. Dominates all agents.
@@ -341,7 +341,7 @@ python3 evaluation/scripts/analyze_belief_accuracy.py
 |---|---|
 | **AB agents dominate** | AB-Heuristic and AB-Learned achieve ~100% win rate vs. all search and RL agents |
 | **UCT beats IS-MCTS** | Counterintuitive: UCT outperforms IS-MCTS because budget-splitting produces shallower searches per determinization |
-| **PPO-LSTM beats UCT** | PPO-LSTM v4 (Elo ~1267) and Pretrained v4 (Elo ~1283) both outperform UCT (Elo ~1167) |
+| **PPO-LSTM beats UCT** | PPO-LSTM Pretrained v4 (Elo ~1756), PPO-LSTM v4 (Elo ~1745), both outperform UCT (Elo ~1643); IS-MCTS D=10 (~1480), Enhanced IS-MCTS D=25 (~1438), GRAVE (~1372), GRAVE+MAST (~1354), Random (~1211) |
 | **BC pretraining helps** | BC pretraining improves both convergence speed and final Elo |
 | **Rankings stable** | Agent ranking is consistent across 2s and 5s time controls |
 | **Emergent belief state** | Belief probe achieves 89.68% accuracy on hidden square classification from LSTM hidden states |

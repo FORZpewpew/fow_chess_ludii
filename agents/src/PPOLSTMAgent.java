@@ -53,7 +53,7 @@ public class PPOLSTMAgent extends AI {
     private int            playerId;
 
     public PPOLSTMAgent() {
-        this.checkpointFile = "checkpoints/ppo_lstm_policy.pt";
+        this.checkpointFile = "checkpoints/ppo_lstm_v4_policy.pt";
         friendlyName = "PPO-LSTM Agent";
     }
 
@@ -63,7 +63,7 @@ public class PPOLSTMAgent extends AI {
     public PPOLSTMAgent(final String ckpt) {
         this.checkpointFile = (ckpt != null && !ckpt.isEmpty())
                 ? ckpt
-                : "checkpoints/ppo_lstm_policy.pt";
+                : "checkpoints/ppo_lstm_v4_policy.pt";
         friendlyName = "PPO-LSTM Agent";
     }
 

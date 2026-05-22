@@ -161,6 +161,9 @@ public class EvalRunner {
                 // Trained policy loading from file path is not supported by the Ludii API;
                 // fall back to vanilla UCT.
                 final boolean policyExists = new File(TRAINED_POLICY_PATH).exists();
+                if (!policyExists) {
+                    System.err.println("[EvalRunner WARNING] Policy file not found for trained_uct; falling back to vanilla UCT. Results may not match intended evaluation.");
+                }
                 System.out.println("[EvalRunner] WARNING: Trained policy "
                         + (policyExists ? "found but" : "not found;")
                         + " file-based loading unsupported. Using vanilla UCT.");
@@ -168,6 +171,8 @@ public class EvalRunner {
             }
             case "ismcts"                -> new ISMCTSAgent(10);
             case "ismcts_v4"             -> new ISMCTSAgent(25);
+            case "particle_ismcts"       -> new ParticleISMCTSAgent();
+            case "lstm_guided_ismcts"    -> new LSTMGuidedISMCTSAgent();
             case "ppo_lstm"              -> new PPOLSTMAgent();
             case "ppo_lstm_pretrained"   -> new PPOLSTMAgent("ppo/checkpoints/ppo_lstm_pretrained.pt");
             case "ppo_lstm_v4"           -> new PPOLSTMAgent("checkpoints/ppo_lstm_v4_policy.pt");
@@ -186,7 +191,7 @@ public class EvalRunner {
                     "Unknown agent slug: '" + slug + "'. Valid: random, uct, pimc_uct, "
                     + "ab_heuristic, ab_learned, trained_uct, ppo, ismcts, ismcts_v4, "
                     + "ppo_lstm, ppo_lstm_pretrained, ppo_lstm_v4, ppo_lstm_pretrained_v4, "
-                    + "grave, grave_mast");
+                    + "grave, grave_mast, particle_ismcts, lstm_guided_ismcts");
         };
     }
 

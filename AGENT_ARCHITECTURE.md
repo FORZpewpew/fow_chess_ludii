@@ -42,7 +42,7 @@ Each player's visibility is computed per piece type:
 - **Sliding pieces** (Rook/Bishop/Queen): `sites LineOfSight Empty` + `sites LineOfSight Piece`
 - **Knight**: walk pattern `{{F F R F} {F F L F}}`
 - **King**: `sites Around (site) All`
-- **Pawn**: forward square, two diagonal attack squares, and double-step square if on starting row
+- **Pawn**: two diagonal attack squares only (NE/NW for P1; SE/SW for P2)
 
 ### What an Agent Observes
 
@@ -569,10 +569,10 @@ result = minimize(elo_likelihood, x0=[1500.0] * n, method='L-BFGS-B')
 
 ### Draw Handling
 
-FoW Chess terminates in a draw when `counter == 99` (50-move rule: 99 half-moves without pawn move or capture):
+FoW Chess terminates in a draw when `counter == 100` (50-move rule: 100 half-moves without pawn move or capture):
 
 ```
-(if (= (counter) 99) (result Mover Draw))
+(if (= (counter) 100) (result Mover Draw))
 ```
 
 Draws count as 0.5 for both agents in Elo.
@@ -600,7 +600,8 @@ Jaccard(ground_truth, belief) = |intersection| / |union|
 Where each set element is a `(site, piece_type)` pair.
 
 **Findings:**
-- Jaccard degrades from ~0.80 in the early game to ~0.11 in the late game
+- Using a position-only metric (set elements are site indices only), Jaccard degrades from ~0.80 in the early game to ~0.11 in the late game
+- Note: the thesis uses a stricter joint position-and-piece-type metric (set elements are `(site, piece_type)` pairs), which yields substantially lower values (~0.022 in the opening, ~0.012 in the midgame), because a determinization must place the correct piece type on the correct square to count as a match
 - As pieces are captured and positions become more constrained, random placement quality worsens
 - This explains IS-MCTS's underperformance: late-game determinizations are poor approximations of reality
 
@@ -628,24 +629,20 @@ History: `checkpoints/belief_probe_v4_history.json`.
 
 | Rank | Agent | Elo (approx) |
 |---|---|---|
-| 1 | PPO-LSTM Pretrained v4 | ~1283 |
-| 2 | PPO-LSTM v4 | ~1267 |
-| 3 | GRAVE+MAST | — |
-| 4 | GRAVE | — |
-| 5 | UCT | ~1167 |
-| 6 | IS-MCTS v4 (25 det.) | — |
-| 7 | IS-MCTS (10 det.) | — |
-| 8 | Random | — |
-
-**AB-Heuristic** and **AB-Learned** dominate all other agents (~100% win rate) and are excluded from the RL/search comparison to avoid scale distortion.
+| 1 | PPO-LSTM Pretrained v4 | ~1756 |
+| 2 | PPO-LSTM v4 | ~1745 |
+| 3 | UCT | ~1643 |
+| 4 | IS-MCTS (10 det.) | ~1480 |
+| 5 | Enhanced IS-MCTS (25 det.) | ~1438 |
+| 6 | GRAVE | ~1372 |
+| 7 | GRAVE+MAST | ~1354 |
+| 8 | Random | ~1211 |
 
 ### Key Findings
 
-1. **AB-Heuristic dominates:** Alpha-Beta search with a hand-crafted heuristic beats all search and RL agents comprehensively. Observable-state minimax with a good heuristic is highly effective in FoW Chess.
+1. **UCT > IS-MCTS (counterintuitive):** Vanilla UCT outperforms IS-MCTS despite IS-MCTS being theoretically superior. Explanation: the total computation budget is split across many shallow UCT searches, whereas UCT's single deep search produces more coherent plans.
 
-2. **UCT > IS-MCTS (counterintuitive):** Vanilla UCT outperforms IS-MCTS despite IS-MCTS being theoretically superior. Explanation: the total computation budget is split across many shallow UCT searches, whereas UCT's single deep search produces more coherent plans.
-
-3. **PPO-LSTM > UCT:** Both PPO-LSTM v4 (Elo ~1267) and PPO-LSTM Pretrained v4 (Elo ~1283) outperform UCT (Elo ~1167) when AB agents are excluded. The LSTM's ability to maintain a history of observations provides a genuine advantage over stateless search.
+2. **PPO-LSTM > UCT:** Both PPO-LSTM v4 (Elo ~1745) and PPO-LSTM Pretrained v4 (Elo ~1756) outperform UCT (Elo ~1643). The LSTM's ability to maintain a history of observations provides a genuine advantage over stateless search.
 
 4. **BC pretraining helps:** The pretrained variant outperforms the from-scratch variant in both Elo and training convergence speed.
 
@@ -731,7 +728,7 @@ bash fow_chess_ludii/evaluation/scripts/build.sh
 |---|---|---|
 | Board size | 8×8 = 64 sites | `(board (square 8))` |
 | Players | P1 (White/South), P2 (Black/North) | `("TwoPlayersNorthSouth")` |
-| Draw condition | counter = 99 half-moves | `(if (= (counter) 99) (result Mover Draw))` |
+| Draw condition | counter = 100 half-moves | `(if (= (counter) 100) (result Mover Draw))` |
 | Win condition | Capture opponent's king | `(if (no Pieces Next "King") (result Mover Win))` |
 | Piece types (Ludii indices) | 1=Pawn, 2=Rook, 3=Bishop, 4=Knight, 5=Queen, 6=King | `(equipment {...})` |
 | Starting position | Standard chess setup | Rows 1/6 (pawns), Rows 0/7 (pieces) |

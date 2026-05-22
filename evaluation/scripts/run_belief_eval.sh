@@ -2,13 +2,18 @@
 # ---------------------------------------------------------------------------
 # run_belief_eval.sh  —  Belief-accuracy evaluation for IS-MCTS (ismcts_v4)
 #
-# Runs IS-MCTS vs UCT for 20 games (10 as P1, 10 as P2) with belief logging
+# Runs IS-MCTS vs UCT for 50 games (25 as P1, 25 as P2) with belief logging
 # enabled.  Requires that agents/agents.jar has been compiled with the
 # belief-logging changes to ISMCTSAgent.java.
 #
 # Usage:
-#   cd /Users/forzpewpew/Downloads/ludii
+#   cd /path/to/fow_chess_ludii
 #   bash evaluation/scripts/run_belief_eval.sh
+#
+# Output:
+#   evaluation/results_grave/ismcts_belief_accuracy.csv  — per-move Jaccard log
+#   /tmp/belief_eval_p1.csv  — game outcomes (ismcts_v4 as P1)
+#   /tmp/belief_eval_p2.csv  — game outcomes (uct as P1)
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -17,10 +22,10 @@ LUDII_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$LUDII_DIR"
 
-BELIEF_LOG="evaluation/results_grave/belief_accuracy.csv"
+BELIEF_LOG="evaluation/results_grave/ismcts_belief_accuracy.csv"
 GAME="FoW_Chess.lud"
 JAR_CP="Ludii-1.3.14.jar:agents/agents.jar"
-GAMES_EACH=10
+GAMES_EACH=25   # 25 as P1 + 25 as P2 = 50 games total
 
 mkdir -p evaluation/results_grave evaluation/logs
 
@@ -28,6 +33,7 @@ echo "================================================================="
 echo " IS-MCTS Belief Accuracy Evaluation"
 echo " Log file : $BELIEF_LOG"
 echo " Game file: $GAME"
+echo " Games    : $((GAMES_EACH * 2))  ($GAMES_EACH as P1 + $GAMES_EACH as P2)"
 echo "================================================================="
 
 # -----------------------------------------------------------------------
@@ -47,7 +53,7 @@ java \
     --output /tmp/belief_eval_p1.csv \
     --time-per-move 1.0
 
-echo "[Pass 1/2] Done. Results in /tmp/belief_eval_p1.csv"
+echo "[Pass 1/2] Done. Game outcomes in /tmp/belief_eval_p1.csv"
 
 # -----------------------------------------------------------------------
 # Pass 2: uct as Player 1, ismcts_v4 as Player 2
@@ -66,7 +72,7 @@ java \
     --output /tmp/belief_eval_p2.csv \
     --time-per-move 1.0
 
-echo "[Pass 2/2] Done. Results in /tmp/belief_eval_p2.csv"
+echo "[Pass 2/2] Done. Game outcomes in /tmp/belief_eval_p2.csv"
 
 # -----------------------------------------------------------------------
 # Summary
@@ -80,3 +86,8 @@ echo "================================================================="
 echo ""
 echo "Run analysis:"
 echo "  python3 evaluation/scripts/analyze_belief_accuracy.py $BELIEF_LOG"
+echo ""
+echo "Or compare with PPO probe results:"
+echo "  python3 evaluation/scripts/analyze_belief_accuracy.py \\"
+echo "    $BELIEF_LOG \\"
+echo "    --ppo-probe evaluation/results_grave/ppo_belief_probe.csv"

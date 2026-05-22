@@ -16,7 +16,6 @@ Key design choices
   random / 50% self-play previous checkpoint.
 
 Usage:
-  cd /Users/forzpewpew/Downloads/ludii
   python3 ppo/train_ppo_lstm.py
   python3 ppo/train_ppo_lstm.py --updates 2 --episodes 2   # smoke-test
 """
@@ -61,7 +60,7 @@ ACT_DIM  = 4096
 _OWN_VAL   = 2.0 / 3.0
 _ENEMY_VAL = 1.0
 _OWNER_TOL = 0.15
-_PIECE_VALUES = {1: 1, 2: 3, 3: 3, 4: 5, 5: 9}  # pawn, knight, bishop, rook, queen
+_PIECE_VALUES = {1: 1, 2: 5, 3: 3, 4: 3, 5: 9}  # pawn, rook, bishop, knight, queen
 
 _policy_cache: dict = {}
 
@@ -230,8 +229,9 @@ def collect_episode(policy: FoWPolicyLSTM,
 
         try:
             reward = _shape_reward(reward, steps, next_obs)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"[reward shaping] Exception suppressed: {e}")
 
         steps.append((obs, mask, act_i, lp_f, val_f, reward, done, h_snap, c_snap))
         obs, mask = next_obs, next_mask
